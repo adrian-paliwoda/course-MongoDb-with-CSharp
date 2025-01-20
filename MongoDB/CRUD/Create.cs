@@ -31,7 +31,10 @@ public class Create
             var flightData2 = new FlightData("ASA", "NYC", "LOT", 3000, true);
 
             collection.InsertOne(flightData0);
-            collection.InsertMany(new []{flightData1, flightData2});
+            collection.InsertMany(new []{flightData1, flightData2}, new InsertManyOptions()
+            {
+                IsOrdered = false
+            });
         }
         MongoDbHelper.ShowDocuments<FlightData>(_database, FlightDataCollectionName);
     }

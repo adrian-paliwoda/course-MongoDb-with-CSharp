@@ -1,4 +1,7 @@
-﻿using MongoDB.Driver;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.IO;
+using MongoDB.Bson.Serialization;
+using MongoDB.Driver;
 
 namespace MongoDB.Utils;
 
@@ -20,6 +23,22 @@ public static class MongoDbHelper
         {
             Console.WriteLine(documents[i]?.ToString());
             Console.WriteLine();
+        }
+    }
+
+    public static void ImportDatabaseFromFile(IMongoDatabase mongoDb, string collectionName, string pathToJsonFile)
+    {
+        var collection = mongoDb.GetCollection<BsonDocument>(collectionName);
+
+        var jsonData = File.ReadAllText(pathToJsonFile);
+        var bsonArray = BsonSerializer.Deserialize<BsonArray>(jsonData);
+
+        for (var index = 0; index < bsonArray.Count; index++)
+        {
+            var bsonValue = bsonArray[(Index)index];
+            var document = bsonValue.AsBsonDocument;
+            
+            collection.InsertOne(document);
         }
     }
 }

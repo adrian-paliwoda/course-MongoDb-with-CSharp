@@ -1,6 +1,8 @@
 ﻿using System.Linq.Expressions;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Model;
+using MongoDB.Utils;
 
 namespace MongoDB.Examples;
 
@@ -116,6 +118,28 @@ public static class Basics
         for (int i = 0; i < foundPatients.Count; i++)
         {
             Console.WriteLine(foundPatients[i].FirstName + " " + foundPatients[i].LastName);
+        }
+
+    }
+
+    public static async Task Example_4_Import()
+    {
+        const string databaseName = "movieData";
+        var collectionName = "movies";
+        var fileToCollectionJson = "./Assets/tv-shows.json";
+        
+        var client = new MongoClient(new MongoUrl(MongodbLocalhost));
+        var mongoDb = client.GetDatabase(databaseName);
+
+        MongoDbHelper.ImportDatabaseFromFile(mongoDb, collectionName, fileToCollectionJson);
+
+        var collection = mongoDb.GetCollection<BsonDocument>(collectionName);
+        
+        var document = await collection.Find(new BsonDocument()).Limit(2).ToListAsync();
+
+        for (int i = 0; i < document.Count; i++)
+        {
+            Console.WriteLine(document[i].ToString());
         }
 
     }
