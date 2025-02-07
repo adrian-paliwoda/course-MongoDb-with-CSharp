@@ -7,7 +7,7 @@ public class Network
 {
     [BsonElement("id")]
     [BsonRepresentation(BsonType.Int32)]
-    // [BsonIgnore]
+    [BsonIgnore]
     public int Id { get; set; }
 
     [BsonElement("name")]
@@ -15,4 +15,7 @@ public class Network
 
     [BsonElement("country")]
     public Country Country { get; set; }
+    
+    [BsonExtraElements]
+    public BsonDocument ExtraElements { get; set; }
 }

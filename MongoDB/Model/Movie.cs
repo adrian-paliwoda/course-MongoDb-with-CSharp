@@ -49,8 +49,7 @@ public class Movie
 
     [BsonElement("weight")]
     public int Weight { get; set; }
-
-    [BsonIgnore]
+    
     [BsonElement("network")]
     public Network Network { get; set; }
 

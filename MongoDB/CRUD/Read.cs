@@ -100,4 +100,24 @@ public class Read
         }
     }
     
+    public async Task Read_Example_4(string databaseName, string collectionName)
+    {
+        var database = _server.GetDatabase(databaseName);
+        var collection = database.GetCollection<Movie>(collectionName);
+
+        var filter = Builders<Movie>.Filter.All(m => m.Genres, new[] { "Horror", "Drama" });
+        var results = await collection.FindAsync(filter);
+
+        var singleResult = await results.FirstOrDefaultAsync();
+
+        if (singleResult != null)
+        {
+            Console.WriteLine("Document has been found");
+        }
+        else
+        {
+            Console.WriteLine("There is no such document in the collection");
+        }
+    }
+    
 }
