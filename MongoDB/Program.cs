@@ -12,7 +12,10 @@ Console.WriteLine("Start");
 //
 // // updateExamples.Example_0();
 // // Basics.Example_3();
-await Basics.Example_4_Import();
+//await Basics.Example_4_Import();
+
+var read = new Read();
+await read.Read_Example_4("movieData", "movies");
 
 
 Console.WriteLine("End");

@@ -5,18 +5,18 @@ namespace MongoDB.CRUD;
 
 public class Read
 {
-    private readonly MongoClient _server;
-    private readonly IMongoDatabase? _database;
     private const string FlightDataCollectionName = "flightData";
     private const string ConnectionString = "mongodb://localhost:27017";
-    const string Flights = "flights";
+    private const string Flights = "flights";
+    private readonly IMongoDatabase? _database;
+    private readonly MongoClient _server;
 
     public Read()
     {
         _server = new MongoClient(ConnectionString);
         _database = _server.GetDatabase(Flights);
     }
-    
+
     public void Read_Example()
     {
         if (_database != null)
@@ -25,14 +25,14 @@ public class Read
             var documents = collection.FindAsync(FilterDefinition<FlightData>.Empty).Result.ToList();
 
             Console.WriteLine($"In mongoDb in collection {FlightDataCollectionName} there are documents:");
-            for (int i = 0; i < documents.Count; i++)
+            for (var i = 0; i < documents.Count; i++)
             {
                 Console.WriteLine(documents[i]?.ToString());
                 Console.WriteLine();
             }
         }
     }
-    
+
     public void Read_Example_1()
     {
         var collection = _database.GetCollection<FlightData>(FlightDataCollectionName);
@@ -55,7 +55,49 @@ public class Read
         {
             Console.WriteLine("There is no such document in the collection");
         }
-        
     }
 
+    public async Task Read_Example_2(string databaseName, string collectionName)
+    {
+        var database = _server.GetDatabase(databaseName);
+        var collection = database.GetCollection<Movie>(collectionName);
+
+        var filter = Builders<Movie>.Filter.And(
+            Builders<Movie>.Filter.Gt(m => m.Rating.Average, 8),
+            Builders<Movie>.Filter.Lte(m => m.Rating.Average, 10)
+        );
+        var results = await collection.FindAsync(filter);
+
+        var singleResult = await results.FirstOrDefaultAsync();
+
+        if (singleResult != null)
+        {
+            Console.WriteLine("Document has been found");
+        }
+        else
+        {
+            Console.WriteLine("There is no such document in the collection");
+        }
+    }
+
+    public async Task Read_Example_3(string databaseName, string collectionName)
+    {
+        var database = _server.GetDatabase(databaseName);
+        var collection = database.GetCollection<Movie>(collectionName);
+
+        var filter = Builders<Movie>.Filter.All(m => m.Genres, new[] { "Horror", "Drama" });
+        var results = await collection.FindAsync(filter);
+
+        var singleResult = await results.FirstOrDefaultAsync();
+
+        if (singleResult != null)
+        {
+            Console.WriteLine("Document has been found");
+        }
+        else
+        {
+            Console.WriteLine("There is no such document in the collection");
+        }
+    }
+    
 }
