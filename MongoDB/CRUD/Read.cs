@@ -103,14 +103,17 @@ public class Read
     public async Task Read_Example_4(string databaseName, string collectionName)
     {
         var database = _server.GetDatabase(databaseName);
-        var collection = database.GetCollection<Movie>(collectionName);
+        var collection = database.GetCollection<User>(collectionName);
 
-        var filter = Builders<Movie>.Filter.All(m => m.Genres, new[] { "Horror", "Drama" });
+        // var filter = Builders<User>.Filter.ElemMatch(u => u.Hobbies, h => h.Frequency == 3 && h.Title == "Sports");
+        var filter = Builders<User>.Filter.ElemMatch(u => u.Hobbies, Builders<Hobby>.Filter.And(
+            Builders<Hobby>.Filter.Eq(h => h.Frequency, 3),
+            Builders<Hobby>.Filter.Eq(h => h.Title, "Sports")));
         var results = await collection.FindAsync(filter);
 
-        var singleResult = await results.FirstOrDefaultAsync();
+        var items = await results.ToListAsync(); 
 
-        if (singleResult != null)
+        if (items.Any())
         {
             Console.WriteLine("Document has been found");
         }
