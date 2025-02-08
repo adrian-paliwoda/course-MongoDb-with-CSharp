@@ -26,7 +26,7 @@ public class Movie
     public string Language { get; set; }
 
     [BsonElement("genres")]
-    public List<string> Genres { get; set; }
+    public string[] Genres { get; set; }
 
     [BsonElement("status")]
     public string Status { get; set; }
