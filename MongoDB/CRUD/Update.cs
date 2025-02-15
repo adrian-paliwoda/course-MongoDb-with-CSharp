@@ -1,4 +1,5 @@
-﻿using MongoDB.Driver;
+﻿using MongoDB.Bson;
+using MongoDB.Driver;
 using MongoDB.Model;
 
 namespace MongoDB.CRUD;
@@ -6,7 +7,6 @@ namespace MongoDB.CRUD;
 public class Update
 {
     private readonly MongoClient _server;
-    private readonly IMongoDatabase? _database;
     private const string FlightDataCollectionName = "flightData";
     private const string ConnectionString = "mongodb://localhost:27017";
     const string Flights = "flights";
@@ -14,14 +14,14 @@ public class Update
     public Update()
     {
         _server = new MongoClient(ConnectionString);
-        _database = _server.GetDatabase(Flights);
     }
     
     public void Example_One()
     {
-        if (_database != null)
+        var database = _server.GetDatabase(Flights);
+        if (database != null)
         {
-            var collection = _database.GetCollection<FlightData>(FlightDataCollectionName);
+            var collection = database.GetCollection<FlightData>(FlightDataCollectionName);
             var filterBuilder = new FilterDefinitionBuilder<FlightData>();
             var filter = filterBuilder.Eq(p => p.Aircraft, "WIZZAR");
             var updateDefinitionBuilder = new UpdateDefinitionBuilder<FlightData>();
@@ -36,9 +36,10 @@ public class Update
     }
     public void Example_Many()
     {
-        if (_database != null)
+        var database = _server.GetDatabase(Flights);
+        if (database != null)
         {
-            var collection = _database.GetCollection<FlightData>(FlightDataCollectionName);
+            var collection = database.GetCollection<FlightData>(FlightDataCollectionName);
             var filterBuilder = new FilterDefinitionBuilder<FlightData>();
             var filter = filterBuilder.Eq(p => p.Aircraft, "WIZZAR");
             var updateDefinitionBuilder = new UpdateDefinitionBuilder<FlightData>();
@@ -53,9 +54,10 @@ public class Update
     }
     public void Example_0()
     {
-        if (_database != null)
+        var database = _server.GetDatabase(Flights);
+        if (database != null)
         {
-            var collection = _database.GetCollection<FlightData>(FlightDataCollectionName);
+            var collection = database.GetCollection<FlightData>(FlightDataCollectionName);
             var filterBuilder = new FilterDefinitionBuilder<FlightData>();
             var filter = filterBuilder.Eq(p => p.Aircraft, "WIZZ");
             var updateDefinitionBuilder = new UpdateDefinitionBuilder<FlightData>();
@@ -63,6 +65,25 @@ public class Update
             var document = collection.FindOneAndUpdate(filter, update);
 
             Console.WriteLine(document.ToString());
+        }
+        
+    }
+    
+    public async Task Example_1()
+    {
+        var database = _server.GetDatabase("movieData");
+        if (database != null)
+        {
+            var collection = database.GetCollection<Movie>("movies");
+            var filter = Builders<Movie>.Filter.Eq(m => m.Id, new ObjectId("678e86bfd845a014f66931e5"));
+            
+            var result = await collection.FindAsync(filter);
+            var document = await result.FirstOrDefaultAsync();
+
+            var update = Builders<Movie>.Update.Set(m => m.Weight, 101);
+            var resultUpdate = collection.UpdateMany(filter, update, new UpdateOptions { IsUpsert = true });
+
+            Console.WriteLine(document.Name);
         }
         
     }

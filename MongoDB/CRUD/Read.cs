@@ -1,4 +1,5 @@
-﻿using MongoDB.Driver;
+﻿using MongoDB.Bson;
+using MongoDB.Driver;
 using MongoDB.Model;
 
 namespace MongoDB.CRUD;
@@ -141,6 +142,34 @@ public class Read
         if (items.Count != 0)
         {
             Console.WriteLine("Document has been found");
+            Console.WriteLine(items.FirstOrDefault()?.Name);
+        }
+        else
+        {
+            Console.WriteLine("There is no such document in the collection");
+        }
+    }
+
+    public async Task Read_Example_4_Without_Types(string databaseName, string collectionName)
+    {
+        var database = _server.GetDatabase(databaseName);
+        var collection = database.GetCollection<BsonDocument>(collectionName);
+        
+        var filter = Builders<BsonDocument>.Filter.ElemMatch(
+            "hobbies",
+            Builders<BsonDocument>.Filter.And(
+                Builders<BsonDocument>.Filter.Eq("freq", 3),
+                Builders<BsonDocument>.Filter.Eq("title", "Sports")
+            )
+        );
+        var results = await collection.FindAsync(filter);
+
+        var items = await results.ToListAsync();
+
+        if (items.Count != 0)
+        {
+            Console.WriteLine("Document has been found");
+            Console.WriteLine(items.FirstOrDefault()?["name"]);
         }
         else
         {
