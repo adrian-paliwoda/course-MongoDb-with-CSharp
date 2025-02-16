@@ -55,6 +55,4 @@ public class Create
         
         MongoDbHelper.ShowDocuments<FlightData>(_database, FlightDataCollectionName);
     }
-    
-    
 }

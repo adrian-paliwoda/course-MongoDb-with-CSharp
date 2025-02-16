@@ -12,6 +12,12 @@ public class User
     [BsonElement("name")] 
     public string Name { get; set; }
     
+    [BsonElement("age")]
+    public int Age { get; set; }
+    
     [BsonElement("hobbies")]
     public List<Hobby> Hobbies { get; set; }
+    
+    [BsonExtraElements]
+    public BsonDocument CatchAll { get; set; }
 }
