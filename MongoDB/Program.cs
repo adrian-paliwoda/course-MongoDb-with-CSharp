@@ -5,10 +5,14 @@ using MongoDB.Examples;
 
 Console.WriteLine("Start");
 
-// var read = new Read();
-// await read.Read_Example_3("movieData", "movies");
-// await read.Read_Example_4("user", "users");
-// await read.Read_Example_4("movieData", "movies");
+// var createExamples = new Create();
+// var readExamples = new Read();
+// var deleteExamples = new Delete();
+// var updateExamples = new Update();
+//
+// // updateExamples.Example_0();
+// // Basics.Example_3();
+await Basics.Example_4_Import();
 
 //
 var update = new Update();

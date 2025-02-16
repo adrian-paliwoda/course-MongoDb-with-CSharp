@@ -1,8 +1,8 @@
-using MongoDB.Bson.Serialization.Attributes;
+﻿using MongoDB.Bson.Serialization.Attributes;
 
 namespace MongoDB.Model;
 
-public class Self
+public class Previousepisode
 {
     [BsonElement("href")]
     public string Href { get; set; }

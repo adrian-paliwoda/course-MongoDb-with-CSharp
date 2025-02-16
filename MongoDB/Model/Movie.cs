@@ -6,12 +6,7 @@ namespace MongoDB.Model;
 public class Movie
 {
     [BsonId]
-    [BsonElement("_id")]
-    public ObjectId Id { get; set; }  // Use ObjectId for the MongoDB _id
-
-    [BsonElement("id")]
     [BsonRepresentation(BsonType.Int32)]
-    public int ShowId { get; set; }   // Renamed to avoid conflict with BsonId, and clarified meaning
 
     [BsonElement("url")]
     public string Url { get; set; }
