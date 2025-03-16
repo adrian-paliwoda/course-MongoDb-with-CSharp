@@ -4,8 +4,7 @@ using MongoDB.CRUD;
 
 Console.WriteLine("Start");
 
-
-var update = new Update();
-await update.Example_6();
+var exercises = new ReadWithAggregations();
+await exercises.Example_0();
 
 Console.WriteLine("End");

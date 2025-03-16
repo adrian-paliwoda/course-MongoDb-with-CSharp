@@ -4,6 +4,8 @@ public static class DatabaseNames
 {
     public const string FlightDataExampleFileName = "flightDataExample.json";
     public const string FlightDataCollectionName = "flightData";
+    public const string PersonsDbnName = "personsData";
+    public const string PersonsCollectionName = "persons";
     public const string MongodbLocalhost = "mongodb://localhost:27017";
     public const string DatabaseShopName = "shop";
     public const string FlightsDbName = "flights";
