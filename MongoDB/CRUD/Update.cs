@@ -1,27 +1,25 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Model;
+using MongoDB.Utils;
 
 namespace MongoDB.CRUD;
 
 public class Update
 {
-    private const string FlightDataCollectionName = "flightData";
-    private const string ConnectionString = "mongodb://localhost:27017";
-    private const string Flights = "flights";
     private readonly MongoClient _server;
 
     public Update()
     {
-        _server = new MongoClient(ConnectionString);
+        _server = new MongoClient(DatabaseNames.ConnectionString);
     }
 
     public void Example_One()
     {
-        var database = _server.GetDatabase(Flights);
+        var database = _server.GetDatabase(DatabaseNames.FlightsDbName);
         if (database != null)
         {
-            var collection = database.GetCollection<FlightData>(FlightDataCollectionName);
+            var collection = database.GetCollection<FlightData>(DatabaseNames.FlightDataCollectionName);
             var filterBuilder = new FilterDefinitionBuilder<FlightData>();
             var filter = filterBuilder.Eq(p => p.Aircraft, "WIZZAR");
             var updateDefinitionBuilder = new UpdateDefinitionBuilder<FlightData>();
@@ -36,10 +34,10 @@ public class Update
 
     public void Example_Many()
     {
-        var database = _server.GetDatabase(Flights);
+        var database = _server.GetDatabase(DatabaseNames.FlightsDbName);
         if (database != null)
         {
-            var collection = database.GetCollection<FlightData>(FlightDataCollectionName);
+            var collection = database.GetCollection<FlightData>(DatabaseNames.FlightDataCollectionName);
             var filterBuilder = new FilterDefinitionBuilder<FlightData>();
             var filter = filterBuilder.Eq(p => p.Aircraft, "WIZZAR");
             var updateDefinitionBuilder = new UpdateDefinitionBuilder<FlightData>();
@@ -54,10 +52,10 @@ public class Update
 
     public void Example_0()
     {
-        var database = _server.GetDatabase(Flights);
+        var database = _server.GetDatabase(DatabaseNames.FlightsDbName);
         if (database != null)
         {
-            var collection = database.GetCollection<FlightData>(FlightDataCollectionName);
+            var collection = database.GetCollection<FlightData>(DatabaseNames.FlightDataCollectionName);
             var filterBuilder = new FilterDefinitionBuilder<FlightData>();
             var filter = filterBuilder.Eq(p => p.Aircraft, "WIZZ");
             var updateDefinitionBuilder = new UpdateDefinitionBuilder<FlightData>();
@@ -197,6 +195,50 @@ public class Update
                 await collection.UpdateManyAsync(filter, update, new UpdateOptions { ArrayFilters = arrayFilters });
 
             Console.WriteLine(document.Name);
+        }
+    }
+
+    public static void Example_7()
+    {
+        var client = new MongoClient(new MongoUrl(DatabaseNames.MongodbLocalhost));
+        var database = client.GetDatabase(DatabaseNames.ClinicDbName);
+        var patients = database.GetCollection<Patient>(DatabaseNames.PatientsCollectionName);
+
+        var patientsItems = new[]
+        {
+            new Patient("Adrian", "Pawel", 29,
+                new[]
+                {
+                    new History("cold", "take medicines"),
+                    new History("OCD", "therapy")
+                }),
+            new Patient("Zuza", "Karolina", 27,
+                new[]
+                {
+                    new History("allergy", "take medicines"),
+                    new History("cold", "stay in bed")
+                }),
+            new Patient("Max", "Schwarzmueller", 29,
+                new[]
+                {
+                    new History("cold", "take medicines"),
+                    new History("allergy", "take drugs")
+                })
+        };
+
+        var updateDefinitionBuilder = new UpdateDefinitionBuilder<Patient>();
+        var update = updateDefinitionBuilder.Push(p => p.History, new History("overdose coffee", "more coffee"))
+            .Set(i => i.Age, 30);
+
+        patients.InsertMany(patientsItems);
+        var foundPatients = patients.FindAsync(p => p.Age > 28).Result.ToList();
+        patients.DeleteMany(p => p.Age < 29);
+        patients.UpdateMany(p => p.Age > 20 && p.History.Any(i => i.Disease.Equals("cold")), update);
+        patients.DeleteMany(p => p.History.Any(i => i.Disease.Equals("cold")));
+
+        for (var i = 0; i < foundPatients.Count; i++)
+        {
+            Console.WriteLine(foundPatients[i].FirstName + " " + foundPatients[i].LastName);
         }
     }
 

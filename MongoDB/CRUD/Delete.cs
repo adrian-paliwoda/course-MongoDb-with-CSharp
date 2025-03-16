@@ -1,27 +1,24 @@
 ﻿using MongoDB.Driver;
 using MongoDB.Model;
+using MongoDB.Utils;
 
 namespace MongoDB.CRUD;
 
 public class Delete
 {
-    private readonly MongoClient _server;
     private readonly IMongoDatabase? _database;
-    private const string FlightDataCollectionName = "flightData";
-    private const string ConnectionString = "mongodb://localhost:27017";
-    const string Flights = "flights";
 
     public Delete()
     {
-        _server = new MongoClient(ConnectionString);
-        _database = _server.GetDatabase(Flights);
+        var server = new MongoClient(DatabaseNames.ConnectionString);
+        _database = server.GetDatabase(DatabaseNames.FlightsDbName);
     }
 
-    public void ExampleOne()
+    public void Example_DeleteOneFlight()
     {
         if (_database != null)
         {
-            var collection = _database.GetCollection<FlightData>(FlightDataCollectionName);
+            var collection = _database.GetCollection<FlightData>(DatabaseNames.FlightDataCollectionName);
             var filterBuilder = new FilterDefinitionBuilder<FlightData>();
             var filter = filterBuilder.Eq(p => p.Aircraft, "WIZZ");
 
@@ -31,11 +28,11 @@ public class Delete
         }
     }
 
-    public void ExampleMany()
+    public void Example_DeleteManyFlights()
     {
         if (_database != null)
         {
-            var collection = _database.GetCollection<FlightData>(FlightDataCollectionName);
+            var collection = _database.GetCollection<FlightData>(DatabaseNames.FlightDataCollectionName);
             var filterBuilder = new FilterDefinitionBuilder<FlightData>();
             var filter = filterBuilder.Eq(p => p.Aircraft, "WIZZ");
 

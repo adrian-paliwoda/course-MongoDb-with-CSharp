@@ -1,31 +1,89 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Model;
+using MongoDB.Utils;
 
 namespace MongoDB.CRUD;
 
 public class Read
 {
-    private const string FlightDataCollectionName = "flightData";
-    private const string ConnectionString = "mongodb://localhost:27017";
-    private const string Flights = "flights";
-    private readonly IMongoDatabase? _database;
     private readonly MongoClient _server;
 
     public Read()
     {
-        _server = new MongoClient(ConnectionString);
-        _database = _server.GetDatabase(Flights);
+        _server = new MongoClient(DatabaseNames.ConnectionString);
+    }
+
+    public void Example_0()
+    {
+        var databaseNames = _server.ListDatabaseNames().ToList();
+
+        for (var i = 0; i < databaseNames.Count; i++)
+        {
+            Console.WriteLine(databaseNames[i]);
+        }
+
+        var database = _server.GetDatabase(DatabaseNames.DatabaseShopName);
+        var collection = database.GetCollection<Product>("products");
+        var documents = collection.FindAsync(Builders<Product>.Filter.Empty).Result.ToList();
+
+
+        var flightsDb = _server.GetDatabase(DatabaseNames.FlightsDbName);
+        var flightData = flightsDb.GetCollection<FlightData>("flightData");
+
+        var document = new FlightData("AU", "KRK", "Rayanir", 1222, true);
+
+        var filterDefinitionBuilder = new FilterDefinitionBuilder<FlightData>();
+        var filter = filterDefinitionBuilder.Eq(p => p.DepartureAirport, document.DepartureAirport)
+                     & filterDefinitionBuilder.Eq(p => p.ArrivalAirport, document.ArrivalAirport)
+                     & filterDefinitionBuilder.Eq(p => p.Aircraft, document.Aircraft)
+                     & filterDefinitionBuilder.Eq(p => p.Distance, document.Distance)
+                     & filterDefinitionBuilder.Eq(p => p.Intercontinental, document.Intercontinental);
+
+        var exists = flightData.FindAsync(filter).Result.Any(); // By value
+        if (!exists)
+        {
+            flightData.InsertOne(document);
+        }
+
+        var data = flightData.FindAsync(FilterDefinition<FlightData>.Empty).Result.ToList();
+
+        for (var i = 0; i < data.Count; i++)
+        {
+            Console.WriteLine(data[i].Id);
+        }
+
+        Console.WriteLine("End");
+    }
+
+    public void Example_2()
+    {
+        var database = _server.GetDatabase(DatabaseNames.FlightsDbName);
+
+        var passengerProjection =
+            Builders<Passenger>.Projection.Include(p => p.Name).Include(p => p.Age).Exclude(p => p.Id);
+
+        var collection = database.GetCollection<Passenger>(DatabaseNames.PassengersCollectionName);
+        var collectionDocuments =
+            collection.Find(FilterDefinition<Passenger>.Empty).Project(passengerProjection).ToList();
+
+        for (var i = 0; i < collectionDocuments.Count; i++)
+        {
+            Console.WriteLine(collectionDocuments[i].ToString());
+        }
     }
 
     public void Read_Example()
     {
-        if (_database != null)
+        var database = _server.GetDatabase(DatabaseNames.FlightsDbName);
+
+        if (database != null)
         {
-            var collection = _database.GetCollection<FlightData>(FlightDataCollectionName);
+            var collection = database.GetCollection<FlightData>(DatabaseNames.FlightDataCollectionName);
             var documents = collection.FindAsync(FilterDefinition<FlightData>.Empty).Result.ToList();
 
-            Console.WriteLine($"In mongoDb in collection {FlightDataCollectionName} there are documents:");
+            Console.WriteLine(
+                $"In mongoDb in collection {DatabaseNames.FlightDataCollectionName} there are documents:");
             for (var i = 0; i < documents.Count; i++)
             {
                 Console.WriteLine(documents[i]?.ToString());
@@ -36,7 +94,8 @@ public class Read
 
     public void Read_Example_1()
     {
-        var collection = _database.GetCollection<FlightData>(FlightDataCollectionName);
+        var database = _server.GetDatabase(DatabaseNames.FlightsDbName);
+        var collection = database.GetCollection<FlightData>(DatabaseNames.FlightDataCollectionName);
 
         var document = new FlightData("AU", "KRK", "Rayanir", 1222, true);
 
@@ -154,7 +213,7 @@ public class Read
     {
         var database = _server.GetDatabase(databaseName);
         var collection = database.GetCollection<BsonDocument>(collectionName);
-        
+
         var filter = Builders<BsonDocument>.Filter.ElemMatch(
             "hobbies",
             Builders<BsonDocument>.Filter.And(

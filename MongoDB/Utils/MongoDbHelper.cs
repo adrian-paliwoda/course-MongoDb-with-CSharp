@@ -1,5 +1,4 @@
 ﻿using MongoDB.Bson;
-using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 
@@ -9,17 +8,14 @@ public static class MongoDbHelper
 {
     public static void ShowDocuments<T>(IMongoDatabase mongoDb, string collectionName)
     {
-        if (mongoDb == null)
-        {
-            throw new ArgumentNullException(nameof(mongoDb));
-        }
-        
+        ArgumentNullException.ThrowIfNull(mongoDb);
+
         var collection = mongoDb.GetCollection<T>(collectionName);
         var documents = collection.FindAsync(FilterDefinition<T>.Empty).Result.ToList();
-        
+
 
         Console.WriteLine($"In mongoDb in collection {collectionName} there are documents:");
-        for (int i = 0; i < documents.Count; i++)
+        for (var i = 0; i < documents.Count; i++)
         {
             Console.WriteLine(documents[i]?.ToString());
             Console.WriteLine();
@@ -37,8 +33,33 @@ public static class MongoDbHelper
         {
             var bsonValue = bsonArray[(Index)index];
             var document = bsonValue.AsBsonDocument;
-            
+
             collection.InsertOne(document);
+        }
+    }
+
+    public static void ReadFromFile<T>(IMongoDatabase? database, string collectionName, string pathToJsonFile)
+    {
+        if (string.IsNullOrEmpty(pathToJsonFile) || string.IsNullOrWhiteSpace(pathToJsonFile))
+        {
+            pathToJsonFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ProjectNames.Assets, DatabaseNames.FlightDataExampleFileName);
+        }
+
+        if (string.IsNullOrEmpty(collectionName) || string.IsNullOrWhiteSpace(collectionName))
+        {
+            collectionName = DatabaseNames.FlightDataCollectionName;
+        }
+
+        if (database != null)
+        {
+            var collection = database.GetCollection<T>(collectionName);
+
+            var bsonFromFile = File.ReadAllText(pathToJsonFile);
+            var bsonDocuments = BsonSerializer.Deserialize<IList<T>>(bsonFromFile);
+
+            collection.InsertMany(bsonDocuments);
+
+            ShowDocuments<T>(database, collectionName);
         }
     }
 }
