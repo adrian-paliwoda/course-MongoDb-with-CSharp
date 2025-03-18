@@ -14,7 +14,7 @@ public class ReadWithAggregations
         _server = new MongoClient(DatabaseNames.ConnectionString);
     }
 
-    public async Task Example_0()
+    public async Task Example_0_Group()
     {
         var database = _server.GetDatabase(DatabaseNames.PersonsDbnName);
 
@@ -48,7 +48,7 @@ public class ReadWithAggregations
         MongoDbHelper.ShowDocuments(results);
     }
 
-    public async Task Example_1()
+    public async Task Example_1_Sort()
     {
         var database = _server.GetDatabase(DatabaseNames.PersonsDbnName);
 
@@ -70,32 +70,104 @@ public class ReadWithAggregations
         Console.WriteLine(results.Count);
     }
 
-    public async Task Example_3()
+    public async Task Example_3_Projection()
     {
         var database = _server.GetDatabase(DatabaseNames.PersonsDbnName);
-
-
         var collection = database.GetCollection<Person>(DatabaseNames.PersonsCollectionName);
-        var matchStage = PipelineStageDefinitionBuilder.Match(
-            Builders<Person>.Filter.Eq(p => p.Gender, "female")
-        );
 
-        var groupStage = PipelineStageDefinitionBuilder.Group<Person>(
-            new BsonDocument
+        var results = await collection
+            .Aggregate()
+            .Skip(100)
+            .Limit(20)
+            .Project(person => new
             {
-                { "_id", new BsonDocument("state", "$location.state") },
-                { "totalPersons", new BsonDocument("$sum", 1) }
-            }
-        );
+                person.Name,
+                person.Email,
+                person.Gender,
+                Location = new
+                {
+                    type = "Point", person.Location.Coordinates
+                }
+            })
+            .ToListAsync();
 
-        var pipeline = PipelineDefinition<Person, BsonDocument>
-            .Create(new IPipelineStageDefinition[] { matchStage, groupStage });
+        Console.WriteLine(results.Count);
+    }
 
-        var resultsAsync = await collection
-            .AggregateAsync(pipeline);
-        var results = await resultsAsync.ToListAsync();
+    public async Task Example_4_Projection()
+    {
+        var database = _server.GetDatabase(DatabaseNames.PersonsDbnName);
+        var collection = database.GetCollection<Person>(DatabaseNames.PersonsCollectionName);
 
-        Console.WriteLine(results);
-        MongoDbHelper.ShowDocuments(results);
+        var results = await collection
+            .Aggregate()
+            .Skip(100)
+            .Limit(20)
+            .Project(person => new
+            {
+                person.Name,
+                person.Email,
+                person.Gender,
+                Location = new
+                {
+                    type = "Point", person.Location.Coordinates
+                }
+            })
+            .Project(p => new
+            {
+                FullName = p.Name.First.ToUpper().Substring(0, 1) + p.Name.First.Substring(1) + " " +
+                           p.Name.Last.ToUpper().Substring(1) + p.Name.Last.Substring(1),
+                p.Gender,
+                p.Location
+            })
+            .ToListAsync();
+
+        Console.WriteLine(results.Count);
+    }
+
+    public async Task Example_5_Projection_Convert()
+    {
+        var database = _server.GetDatabase(DatabaseNames.PersonsDbnName);
+        var collection = database.GetCollection<Person>(DatabaseNames.PersonsCollectionName);
+
+        var pipeline = new BsonDocument[]
+        {
+            new("$project", new BsonDocument
+            {
+                { "Name", 1 },
+                { "Email", 1 },
+                { "Gender", 1 },
+                {
+                    "Location", new BsonDocument
+                    {
+                        { "type", "Point" },
+                        {
+                            "coordinates", new BsonArray
+                            {
+                                new BsonDocument("$convert", new BsonDocument
+                                {
+                                    { "input", "$location.coordinates.latitude" },
+                                    { "to", "double" },
+                                    { "onError", 0 }
+                                }),
+                                new BsonDocument("$convert", new BsonDocument
+                                {
+                                    { "input", "$location.coordinates.longitude" },
+                                    { "to", "double" },
+                                    { "onError", 0 }
+                                })
+                            }
+                        }
+                    }
+                }
+            })
+        };
+
+
+        var results = await (await collection
+                .AggregateAsync<BsonDocument>(pipeline))
+            .ToListAsync();
+
+        Console.WriteLine(results.Count);
     }
 }

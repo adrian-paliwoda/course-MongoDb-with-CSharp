@@ -21,12 +21,12 @@ public static class MongoDbHelper
         }
     }
 
-    public static void ShowDocuments(IReadOnlyCollection<BsonDocument> documents)
+    public static void ShowDocuments<T>(IReadOnlyCollection<T> documents)
     {
         Console.WriteLine($"In mongoDb in collection there are {documents.Count} documents:");
         foreach (var document in documents)
         {
-            Console.WriteLine(document.ToString());
+            Console.WriteLine(document?.ToString());
             Console.WriteLine();
         }
     }

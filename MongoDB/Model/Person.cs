@@ -44,4 +44,7 @@ public class Person
 
     [BsonElement("nat")]
     public string Nat { get; set; }
+    
+    [BsonExtraElements]
+    public BsonDocument ExtraElements { get; set; }
 }
