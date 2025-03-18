@@ -13,11 +13,20 @@ public static class MongoDbHelper
         var collection = mongoDb.GetCollection<T>(collectionName);
         var documents = collection.FindAsync(FilterDefinition<T>.Empty).Result.ToList();
 
-
         Console.WriteLine($"In mongoDb in collection {collectionName} there are documents:");
         for (var i = 0; i < documents.Count; i++)
         {
             Console.WriteLine(documents[i]?.ToString());
+            Console.WriteLine();
+        }
+    }
+
+    public static void ShowDocuments(IReadOnlyCollection<BsonDocument> documents)
+    {
+        Console.WriteLine($"In mongoDb in collection there are {documents.Count} documents:");
+        foreach (var document in documents)
+        {
+            Console.WriteLine(document.ToString());
             Console.WriteLine();
         }
     }
@@ -42,7 +51,8 @@ public static class MongoDbHelper
     {
         if (string.IsNullOrEmpty(pathToJsonFile) || string.IsNullOrWhiteSpace(pathToJsonFile))
         {
-            pathToJsonFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ProjectNames.Assets, DatabaseNames.FlightDataExampleFileName);
+            pathToJsonFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ProjectNames.Assets,
+                DatabaseNames.FlightDataExampleFileName);
         }
 
         if (string.IsNullOrEmpty(collectionName) || string.IsNullOrWhiteSpace(collectionName))
