@@ -5,8 +5,8 @@ namespace MongoDB.Model;
 public class Dob
 {
     [BsonElement("date")]
-    public DateTime Date { get; set; }
+    public string? Date { get; set; }
 
     [BsonElement("age")]
-    public int Age { get; set; }
+    public int? Age { get; set; }
 }

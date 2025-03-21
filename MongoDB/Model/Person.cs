@@ -7,6 +7,7 @@ public class Person
 {
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
+    [BsonIgnore]
     public string Id { get; set; }
 
     [BsonElement("gender")]
