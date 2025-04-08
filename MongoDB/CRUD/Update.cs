@@ -136,7 +136,7 @@ public class Update
             var document = await result.FirstOrDefaultAsync();
 
             var update = Builders<User>.Update.PushEach(u => u.Hobbies,
-                new[] { new Hobby { Title = "Coffee", Frequency = 7 } });
+                [new Hobby { Title = "Coffee", Frequency = 7 }]);
             var resultUpdate = await collection.UpdateManyAsync(FilterDefinition<User>.Empty, update);
 
             Console.WriteLine(document.Name);
@@ -207,23 +207,20 @@ public class Update
         var patientsItems = new[]
         {
             new Patient("Adrian", "Pawel", 29,
-                new[]
-                {
-                    new History("cold", "take medicines"),
+            [
+                new History("cold", "take medicines"),
                     new History("OCD", "therapy")
-                }),
+            ]),
             new Patient("Zuza", "Karolina", 27,
-                new[]
-                {
-                    new History("allergy", "take medicines"),
+            [
+                new History("allergy", "take medicines"),
                     new History("cold", "stay in bed")
-                }),
+            ]),
             new Patient("Max", "Schwarzmueller", 29,
-                new[]
-                {
-                    new History("cold", "take medicines"),
+            [
+                new History("cold", "take medicines"),
                     new History("allergy", "take drugs")
-                })
+            ])
         };
 
         var updateDefinitionBuilder = new UpdateDefinitionBuilder<Patient>();
@@ -248,12 +245,12 @@ public class Update
         {
             Name = "Maria",
             Age = 29,
-            Hobbies = new List<Hobby>
-            {
+            Hobbies =
+            [
                 new() { Title = "Hiking", Frequency = 2 },
                 new() { Title = "Good wine", Frequency = 3 },
                 new() { Title = "Good wine", Frequency = 4 }
-            }
+            ]
         };
 
         var database = _server.GetDatabase("usersData");

@@ -10,7 +10,7 @@ public class Delete
 
     public Delete()
     {
-        var server = new MongoClient(DatabaseNames.ConnectionString);
+        var server = new MongoClient(MongoDbHelper.GenerateMongoDbSettings());
         _database = server.GetDatabase(DatabaseNames.FlightsDbName);
     }
 
@@ -20,7 +20,7 @@ public class Delete
         {
             var collection = _database.GetCollection<FlightData>(DatabaseNames.FlightDataCollectionName);
             var filterBuilder = new FilterDefinitionBuilder<FlightData>();
-            var filter = filterBuilder.Eq(p => p.Aircraft, "WIZZ");
+            var filter = filterBuilder.Eq(p => p.Aircraft, DatabaseNames.Wizz);
 
             var deleteResult = collection.DeleteOne(filter);
 
@@ -34,7 +34,7 @@ public class Delete
         {
             var collection = _database.GetCollection<FlightData>(DatabaseNames.FlightDataCollectionName);
             var filterBuilder = new FilterDefinitionBuilder<FlightData>();
-            var filter = filterBuilder.Eq(p => p.Aircraft, "WIZZ");
+            var filter = filterBuilder.Eq(p => p.Aircraft, DatabaseNames.Wizz);
 
             var deleteResult = collection.DeleteOne(filter);
 

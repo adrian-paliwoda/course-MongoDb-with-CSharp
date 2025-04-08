@@ -1,4 +1,6 @@
-﻿using MongoDB.Bson;
+﻿using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 
@@ -6,6 +8,39 @@ namespace MongoDB.Utils;
 
 public static class MongoDbHelper
 {
+    public static MongoClientSettings GenerateMongoDbSettings()
+    {
+        var certificate =
+            X509CertificateLoader.LoadPkcs12FromFile(DatabaseNames.CertificateP12, DatabaseNames.CertificatePassword);
+        var caCert = X509CertificateLoader.LoadCertificateFromFile(DatabaseNames.CaCertificate);
+
+        return new MongoClientSettings
+        {
+            Server = new MongoServerAddress(DatabaseNames.Host, DatabaseNames.Port),
+            Credential = MongoCredential.CreateCredential(DatabaseNames.AdminDatabaseName, DatabaseNames.UserName,
+                DatabaseNames.Password),
+            UseTls = true,
+            ConnectTimeout = TimeSpan.FromSeconds(5),
+            ServerSelectionTimeout = TimeSpan.FromSeconds(10),
+            SslSettings = new SslSettings
+            {
+                ClientCertificates = [certificate],
+                EnabledSslProtocols = SslProtocols.Tls12,
+                ServerCertificateValidationCallback = (_, cert, chain, _) =>
+                {
+                    if (chain == null || cert is not X509Certificate2 certX509)
+                    {
+                        return false;
+                    }
+
+                    chain.ChainPolicy.ExtraStore.Add(caCert);
+                    chain.ChainPolicy.VerificationFlags = X509VerificationFlags.AllowUnknownCertificateAuthority;
+                    return chain.Build(certX509);
+                }
+            }
+        };
+    }
+
     public static void ShowDocuments<T>(IMongoDatabase mongoDb, string collectionName)
     {
         ArgumentNullException.ThrowIfNull(mongoDb);

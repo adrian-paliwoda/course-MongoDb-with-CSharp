@@ -10,7 +10,7 @@ public class Create
 
     public Create()
     {
-        var server = new MongoClient(DatabaseNames.ConnectionString);
+        var server = new MongoClient(MongoDbHelper.GenerateMongoDbSettings());
         _database = server.GetDatabase(DatabaseNames.FlightsDbName);
     }
 
@@ -25,7 +25,7 @@ public class Create
             var flightData2 = new FlightData("ASA", "NYC", "LOT", 3000, true);
 
             collection.InsertOne(flightData0);
-            collection.InsertMany(new[] { flightData1, flightData2 }, new InsertManyOptions
+            collection.InsertMany([flightData1, flightData2], new InsertManyOptions
             {
                 IsOrdered = false
             });

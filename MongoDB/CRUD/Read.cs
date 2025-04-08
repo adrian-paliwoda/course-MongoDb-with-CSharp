@@ -7,11 +7,13 @@ namespace MongoDB.CRUD;
 
 public class Read
 {
+    private const string? DocumentHasBeenFound = "Document has been found";
+    private const string? ThereIsNoSuchDocumentInTheCollection = "There is no such document in the collection";
     private readonly MongoClient _server;
 
     public Read()
     {
-        _server = new MongoClient(DatabaseNames.ConnectionString);
+        _server = new MongoClient(MongoDbHelper.GenerateMongoDbSettings());
     }
 
     public void Example_0()
@@ -109,11 +111,11 @@ public class Read
         var exists = collection.FindAsync(filter).Result.Any(); // By value
         if (exists)
         {
-            Console.WriteLine("Document has been found");
+            Console.WriteLine(DocumentHasBeenFound);
         }
         else
         {
-            Console.WriteLine("There is no such document in the collection");
+            Console.WriteLine(ThereIsNoSuchDocumentInTheCollection);
         }
     }
 
@@ -132,11 +134,11 @@ public class Read
 
         if (singleResult != null)
         {
-            Console.WriteLine("Document has been found");
+            Console.WriteLine(DocumentHasBeenFound);
         }
         else
         {
-            Console.WriteLine("There is no such document in the collection");
+            Console.WriteLine(ThereIsNoSuchDocumentInTheCollection);
         }
     }
 
@@ -175,13 +177,13 @@ public class Read
         var singleResult = movies.FirstOrDefault();
         var singleResultMovie = movies.FirstOrDefault();
 
-        if (singleResult != null)
+        if (singleResult != null && singleResultMovie != null)
         {
-            Console.WriteLine("Document has been found");
+            Console.WriteLine(DocumentHasBeenFound);
         }
         else
         {
-            Console.WriteLine("There is no such document in the collection");
+            Console.WriteLine(ThereIsNoSuchDocumentInTheCollection);
         }
     }
 
@@ -200,12 +202,12 @@ public class Read
 
         if (items.Count != 0)
         {
-            Console.WriteLine("Document has been found");
+            Console.WriteLine(DocumentHasBeenFound);
             Console.WriteLine(items.FirstOrDefault()?.Name);
         }
         else
         {
-            Console.WriteLine("There is no such document in the collection");
+            Console.WriteLine(ThereIsNoSuchDocumentInTheCollection);
         }
     }
 
@@ -227,12 +229,12 @@ public class Read
 
         if (items.Count != 0)
         {
-            Console.WriteLine("Document has been found");
+            Console.WriteLine(DocumentHasBeenFound);
             Console.WriteLine(items.FirstOrDefault()?["name"]);
         }
         else
         {
-            Console.WriteLine("There is no such document in the collection");
+            Console.WriteLine(ThereIsNoSuchDocumentInTheCollection);
         }
     }
 }

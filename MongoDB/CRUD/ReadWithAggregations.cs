@@ -3,7 +3,6 @@ using MongoDB.Driver;
 using MongoDB.Driver.GeoJsonObjectModel;
 using MongoDB.Model;
 using MongoDB.Utils;
-using IPipelineStageDefinition = MongoDB.Driver.IPipelineStageDefinition;
 using MongoClient = MongoDB.Driver.MongoClient;
 using PipelineStageDefinitionBuilder = MongoDB.Driver.PipelineStageDefinitionBuilder;
 
@@ -15,13 +14,12 @@ public class ReadWithAggregations
 
     public ReadWithAggregations()
     {
-        _server = new MongoClient(DatabaseNames.ConnectionString);
+        _server = new MongoClient(MongoDbHelper.GenerateMongoDbSettings());
     }
 
     public async Task Example_0_Group()
     {
         var database = _server.GetDatabase(DatabaseNames.PersonsDbnName);
-
 
         var collection = database.GetCollection<Person>(DatabaseNames.PersonsCollectionName);
         var matchStage = PipelineStageDefinitionBuilder.Match(Builders<Person>.Filter.Eq(p => p.Gender, "female")
@@ -31,16 +29,15 @@ public class ReadWithAggregations
             new BsonDocument
             {
                 { "_id", new BsonDocument("state", "$location.state") },
-                { "totalPersons", new BsonDocument("$sum", 1) }
+                { DatabaseNames.TotalPersons, new BsonDocument("$sum", 1) }
             }
         );
 
         var sortBuilder = Builders<BsonDocument>.Sort;
-        var sortStage = sortBuilder.Ascending("totalPersons");
+        var sortStage = sortBuilder.Ascending(DatabaseNames.TotalPersons);
 
         var pipeline = PipelineDefinition<Person, BsonDocument>
-            .Create(new IPipelineStageDefinition[]
-                { matchStage, groupStage, PipelineStageDefinitionBuilder.Sort(sortStage) });
+            .Create([matchStage, groupStage, PipelineStageDefinitionBuilder.Sort(sortStage)]);
 
         var resultsAsync = await collection
             .AggregateAsync(pipeline);
@@ -63,9 +60,9 @@ public class ReadWithAggregations
             .Group<BsonDocument>(new BsonDocument
             {
                 { "_id", new BsonDocument("state", "$location.state") },
-                { "totalPersons", new BsonDocument("$sum", 1) }
+                { DatabaseNames.TotalPersons, new BsonDocument("$sum", 1) }
             })
-            .Sort(new BsonDocumentSortDefinition<BsonDocument>(new BsonDocument("totalPersons", -1)));
+            .Sort(new BsonDocumentSortDefinition<BsonDocument>(new BsonDocument(DatabaseNames.TotalPersons, -1)));
 
         var results = await resultsAggregateFluent.ToListAsync();
 
@@ -86,7 +83,7 @@ public class ReadWithAggregations
                 person.Gender,
                 Location = new
                 {
-                    type = "Point", person.Location.Coordinates
+                    type = DatabaseNames.Point, person.Location.Coordinates
                 }
             }).ToListAsync();
 
@@ -107,7 +104,7 @@ public class ReadWithAggregations
                 person.Gender,
                 Location = new
                 {
-                    type = "Point", person.Location.Coordinates
+                    type = DatabaseNames.Point, person.Location.Coordinates
                 }
             }).Project(p => new
             {
@@ -135,7 +132,7 @@ public class ReadWithAggregations
                 {
                     "Location", new BsonDocument
                     {
-                        { "type", "Point" },
+                        { "type", DatabaseNames.Point },
                         {
                             "coordinates", new BsonArray
                             {
@@ -302,7 +299,7 @@ public class ReadWithAggregations
                 p.Name,
                 p.Hobbies,
                 p.Age,
-                Scores = p.ExamScores.Where(p => p.Score > 60)
+                Scores = p.ExamScores.Where(examScore => examScore.Score > 60)
             })
             .ToListAsync();
 
@@ -344,8 +341,8 @@ public class ReadWithAggregations
         var results = await collection
             .Aggregate()
             .Bucket(
-                p => p.Dob.Age.HasValue ? p.Dob.Age.Value : 0,
-                new[] { 18, 30, 40, 50, 60, 120 },
+                p => p.Dob.Age ?? 0,
+                [18, 30, 40, 50, 60, 120],
                 output => new
                 {
                     output.Key,
@@ -392,7 +389,7 @@ public class ReadWithAggregations
                 {
                     "near", new BsonDocument
                     {
-                        { "type", "Point" },
+                        { "type", DatabaseNames.Point },
                         { "coordinates", new BsonArray { -18.4, -42.8 } }
                     }
                 },
@@ -403,8 +400,8 @@ public class ReadWithAggregations
             new BsonDocument("$limit", 10)
         };
 
-        var results = await collection
-            .Aggregate<BsonDocument>(pipeline)
+        var results = await (await collection
+            .AggregateAsync<BsonDocument>(pipeline))
             .ToListAsync();
 
         Console.WriteLine(results.Count);
@@ -412,7 +409,7 @@ public class ReadWithAggregations
 
     public async Task Example_17_Geo_Near()
     {
-        var database = _server.GetDatabase(DatabaseNames.PersonsDbnName);
+        var database = _server.GetDatabase(DatabaseNames.PersonsDbnName, new MongoDatabaseSettings());
         var collection = database.GetCollection<BsonDocument>(DatabaseNames.PersonsCollectionName);
 
         var filter = Builders<BsonDocument>.Filter.Near(p => p["distance"], maxDistance: 1000000, minDistance: 1,

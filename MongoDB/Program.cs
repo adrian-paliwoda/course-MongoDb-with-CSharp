@@ -5,6 +5,6 @@ using MongoDB.CRUD;
 Console.WriteLine("Start");
 
 var exercises = new ReadWithAggregations();
-await exercises.Example_17_Geo_Near();
+await exercises.Example_14_Bucket();
 
 Console.WriteLine("End");
