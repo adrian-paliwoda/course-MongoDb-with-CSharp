@@ -11,7 +11,7 @@ public static class MongoDbHelper
     public static MongoClientSettings GenerateMongoDbSettings()
     {
         var certificate =
-            X509CertificateLoader.LoadPkcs12FromFile(DatabaseNames.CertificateP12, DatabaseNames.CertificatePassword);
+            X509CertificateLoader.LoadPkcs12FromFile(DatabaseNames.CertificateP12, new ReadOnlySpan<char>(DatabaseNames.CertificatePassword.ToCharArray()));
         var caCert = X509CertificateLoader.LoadCertificateFromFile(DatabaseNames.CaCertificate);
 
         return new MongoClientSettings
